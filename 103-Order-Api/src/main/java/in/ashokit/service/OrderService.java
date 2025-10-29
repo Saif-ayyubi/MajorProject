@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface OrderService {
 
-    public PurchaseOrderResponseDto createOrder(PurchaseOrderRequestDto orderRequestDto);
+    public PurchaseOrderResponseDto createOrder(PurchaseOrderRequestDto orderRequestDto) throws Exception;
 
     public PurchaseOrderResponseDto updateOrder(PurchaseOrderRequestDto orderRequestDto);
 

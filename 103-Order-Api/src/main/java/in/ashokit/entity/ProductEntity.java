@@ -8,13 +8,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product")
 @Setter
 @Getter
-public class Product {
+public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,5 +33,5 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name="category_id", nullable = false)
-    private ProductCategory category;
+    private ProductCategoryEntity category;
 }
