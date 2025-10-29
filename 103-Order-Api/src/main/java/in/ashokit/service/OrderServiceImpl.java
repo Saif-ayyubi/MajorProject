@@ -53,8 +53,6 @@ public class OrderServiceImpl implements OrderService{
             customerEntity = CustomerMapper.convertToEntity(customerDto);
             CustomerEntity savedCustomer = customerRepo.save(customerEntity);//when customer saved customerId will be available
 
-            System.out.println("hhh");
-
 
 
             //TODO : Interservice communication
