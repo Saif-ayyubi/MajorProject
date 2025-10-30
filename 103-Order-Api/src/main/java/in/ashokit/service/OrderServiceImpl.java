@@ -53,8 +53,6 @@ public class OrderServiceImpl implements OrderService{
             customerEntity = CustomerMapper.convertToEntity(customerDto);
             CustomerEntity savedCustomer = customerRepo.save(customerEntity);//when customer saved customerId will be available
 
-
-
             //TODO : Interservice communication
         }
 
@@ -97,23 +95,55 @@ public class OrderServiceImpl implements OrderService{
         responseDto.setRazorpayOrderId(razorpayOrderId);
         responseDto.setOrderTrackingNumber(orderTrackingNum);
         responseDto.setOrderStatus("CREATED");
+        responseDto.setPaymentStatus("PENDING");
 
         return responseDto;
     }
 
     @Override
-    public PurchaseOrderResponseDto updateOrder(PurchaseOrderRequestDto orderRequestDto) {
-        return null;
+    public PurchaseOrderResponseDto updateOrder(UpdateOrderRequestDto updateOrderRequestDto) {
+
+        OrderEntity orderEntity = orderRepo.findByOrderTrackingNum(updateOrderRequestDto.getOrderTrackingNum());
+        orderEntity.setRazorpayPaymentId(updateOrderRequestDto.getRazorpayPaymentId());
+        orderEntity.setPaymentStatus("COMPLETED");
+        orderEntity.setOrderStatus("CONFIRMED");
+        orderRepo.save(orderEntity);
+
+        // prepare final response
+        PurchaseOrderResponseDto responseDto = new PurchaseOrderResponseDto();
+        responseDto.setRazorpayOrderId(orderEntity.getRazorpayOrderId());
+        responseDto.setOrderTrackingNumber(orderEntity.getOrderTrackingNum());
+        responseDto.setOrderStatus(orderEntity.getOrderStatus());
+        responseDto.setPaymentStatus("COMPLETED");
+        return responseDto;
     }
 
     @Override
-    public PurchaseOrderRequestDto cancelOrder(String orderTrackingNumber) {
-        return null;
+    public PurchaseOrderResponseDto cancelOrder(String orderTrackingNumber) throws Exception{
+        OrderEntity orderEntity = orderRepo.findByOrderTrackingNum(orderTrackingNumber);
+        orderEntity.setOrderStatus("CANCELLED");
+        orderEntity.setPaymentStatus("REFUND-IN-PROGRESS");
+        orderEntity.setDeliveyDate(null);
+        orderRepo.save(orderEntity);
+
+        //TODO: Razorpay refund logic
+        Integer totalPrice = orderEntity.getTotalPrice().intValue();
+
+        razorpayService.refundPayment(orderEntity.getRazorpayPaymentId(), totalPrice * 100);
+
+        // prepare final response
+        PurchaseOrderResponseDto responseDto = new PurchaseOrderResponseDto();
+        responseDto.setRazorpayOrderId(orderEntity.getRazorpayOrderId());
+        responseDto.setOrderTrackingNumber(orderEntity.getOrderTrackingNum());
+        responseDto.setOrderStatus(orderEntity.getOrderStatus());
+        responseDto.setPaymentStatus("REFUND-IN-PROGRESS");
+        return responseDto;
     }
 
     @Override
     public List<OrderDto> getCustomerOrders(String customerEmail) {
-        return List.of();
+        List<OrderEntity> ordersList = orderRepo.findByCustomerEmail(customerEmail);
+        return ordersList.stream().map(OrderMapper::convertToDto).toList();
     }
 
     private String generateRandomTrackingNumber() {//generate Random tracking number for every Order(unique)

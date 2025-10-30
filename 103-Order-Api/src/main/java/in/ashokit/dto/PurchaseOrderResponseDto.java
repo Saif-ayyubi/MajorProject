@@ -8,4 +8,5 @@ public class PurchaseOrderResponseDto {
     private String razorpayOrderId;
     private String orderStatus;
     private String orderTrackingNumber;
+    private String paymentStatus;
 }
